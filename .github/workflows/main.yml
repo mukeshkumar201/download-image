@@ -2,16 +2,20 @@ name: Auto Watermark & Drive Upload
 
 on:
   schedule:
-    # Ye rozana ek baar chalega (Raat ke 12:00 baje UTC)
-    - cron: '0 0 * * *' 
+    - cron: '3 0,3,6,9,12,15,18,21 * * *'
+    - cron: '33 1,4,7,10,13,16,19,22 * * *'
   push:
     branches:
       - main
-  workflow_dispatch: # Manual chalane ke liye
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # --- YE LINE ADD KARNI HAI ---
+    permissions:
+      contents: write
+    # ----------------------------
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -36,9 +40,13 @@ jobs:
         run: python bot.py
 
       - name: Commit & Push History
+        if: always()
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          # Pehle pull kar lo taaki koi conflict na ho
+          git pull origin main --rebase
+          touch posted_urls.txt
           git add posted_urls.txt
           git commit -m "Update scrape history [skip ci]" || echo "No changes"
-          git push
+          git push origin main
